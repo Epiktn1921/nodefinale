@@ -1,28 +1,32 @@
-const soap = require('soap');
 
-const PROXY_URL = 'http://localhost:3001/valute?wsdl';
+const axios = require('axios');
 
-async function testGetValutes() {
-  const client = await soap.createClientAsync(PROXY_URL);
-  const result = await client.getValutesAsync({});
-  console.log('Список валют:', JSON.parse(result.valutes));
+const BASE_URL = 'http://localhost:3001';
+
+async function getValutes() {
+  try {
+    const res = await axios.get(`${BASE_URL}/valutes`);
+    console.log('💱 Список валют:');
+    console.log(JSON.stringify(res.data, null, 2));
+  } catch (err) {
+    console.error('❌ Ошибка при получении валют:', err.response?.data || err.message);
+  }
 }
 
-async function testGetValute() {
-  const client = await soap.createClientAsync(PROXY_URL);
-  const result = await client.getValuteAsync({
-    code: 'R01235', // USD
-    fromDate: '01.03.2023',
-    toDate: '15.03.2023'
-  });
-  console.log('Динамика USD:', JSON.parse(result.dynamic));
+async function getValuteHistory(code, from, to) {
+  try {
+    const res = await axios.get(`${BASE_URL}/valute`, {
+      params: { code, fromDate: from, toDate: to }
+    });
+    console.log(`📈 Динамика ${code} (${from} – ${to}):`);
+    console.log(JSON.stringify(res.data, null, 2));
+  } catch (err) {
+    console.error('❌ Ошибка при получении динамики:', err.response?.data || err.message);
+  }
 }
-
 
 (async () => {
-  console.log('--- Получение списка валют ---');
-  await testGetValutes();
-
-  console.log('\n--- Получение динамики курса ---');
-  await testGetValute();
+  await getValutes();
+  console.log('\n');
+  await getValuteHistory('R01235', '01.03.2023', '15.03.2023'); // USD
 })();
